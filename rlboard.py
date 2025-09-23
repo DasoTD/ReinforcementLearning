@@ -40,6 +40,7 @@ def probs(v):
         v = v/v.sum()
     return v
 
+
 class Board:
     class Cell:
         empty = 0

@@ -69,3 +69,65 @@ def reward(m,pos=None):
 Q = np.ones((width,height,len(actions)),dtype=float)*1.0/len(actions)
 
 m.plot(Q)
+
+
+def probs(v,eps=1e-4):
+    v = v-v.min()+eps
+    v = v/v.sum()
+    return v
+
+    for epoch in range(5000):
+    
+        # Pick initial point
+        m.random_start()
+        
+        # Start travelling
+        n=0
+        cum_reward = 0
+        while True:
+            x,y = m.human
+            v = probs(Q[x,y])
+            a = random.choices(list(actions),weights=v)[0]
+            dpos = actions[a]
+            m.move(dpos,check_correctness=False) # we allow player to move outside the board, which terminates episode
+            r = reward(m)
+            cum_reward += r
+            if r==end_reward or cum_reward < -1000:
+                lpath.append(n)
+                break
+            alpha = np.exp(-n / 10e5)
+            gamma = 0.5
+            ai = action_idx[a]
+            Q[x,y,ai] = (1 - alpha) * Q[x,y,ai] + alpha * (r + gamma * Q[x+dpos[0], y+dpos[1]].max())
+            n+=1
+
+def update_Q(Q,m,alpha=0.1,gamma=0.9):
+    a = action_idx[random_policy(m)]
+    pos = m.human
+    new_pos = m.move_pos(pos,actions[list(actions.keys())[a]])
+    r = reward(m,new_pos)
+    if m.is_valid(new_pos) and m.at(new_pos)!=Board.Cell.water:
+        m.move(actions[list(actions.keys())[a]])
+        Q[pos[0],pos[1],a] = (1-alpha)*Q[pos[0],pos[1],a] + alpha*(r + gamma*Q[new_pos[0],new_pos[1]].max())
+    else:
+        Q[pos[0],pos[1],a] = (1-alpha)*Q[pos[0],pos[1],a] + alpha*(r + gamma*Q[pos[0],pos[1]].max())
+    return r
+
+def qpolicy_strict(m):
+        x,y = m.human
+        v = probs(Q[x,y])
+        a = list(actions)[np.argmax(v)]
+        return a
+
+walk(m,qpolicy_strict)
+print_statistics(qpolicy_strict)
+m.plot(Q)
+
+
+def qpolicy(m):
+        x,y = m.human
+        v = probs(Q[x,y])
+        a = random.choices(list(actions),weights=v)[0]
+        return a
+
+print_statistics(qpolicy)
