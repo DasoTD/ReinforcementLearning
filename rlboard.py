@@ -58,7 +58,7 @@ class Board:
         self.grid_line_type = cv2.LINE_AA
         self.pics = {
             "wolf" : imload('images/wolf.png',size-4),
-            "apple" : imload('images/apple.png',size-4),
+            "apple" : imload('images/apple.jpg',size-4),
             "human" : imload('images/human.png',size-4)
         }
         self.human = (0,0)
